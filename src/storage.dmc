@@ -1,0 +1,7 @@
+extern fn store_set(key: string, val: string) -> int;
+extern fn store_get(key: string) -> string;
+extern fn store_del(key: string) -> int;
+extern fn store_exists(key: string) -> int;
+extern fn store_expire(key: string, seconds: int) -> int;
+extern fn store_ttl(key: string) -> int;
+extern fn store_incr(key: string, delta: int) -> int;

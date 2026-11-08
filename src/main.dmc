@@ -1,0 +1,46 @@
+import "src/net.dmc";
+import "src/commands.dmc";
+
+fn print_banner() {
+    println("==========================================================");
+    println("     ___  __  ________     ____  __________  _________    ");
+    println("    / _ \\/  |/  / ___/____/ __ \\/ ____/ __ \\/  _/ ___/   ");
+    println("   / // / /|_/ / /__ /___/ /_/ / __/ / / / // / \\__ \\    ");
+    println("  / // / /  / / /___    / _, _/ /___/ /_/ // / ___/ /    ");
+    println(" /____/_/  /_/\\___/    /_/ |_/_____/_____/___//____/     ");
+    println("==========================================================");
+    println(" Demonic-Redis v1.0.0 (Pure Demonic C & SIMD Hardware)   ");
+    println(" Port: 6379 | Architecture: x86_64 | SIMD: f32x4 Active  ");
+    println(" Ready to accept connections. Enter the Abyss...          ");
+    println("==========================================================");
+}
+
+fn main() -> int {
+    print_banner();
+
+    let server_fd: int = dmc_tcp_listen(6379);
+    if (server_fd < 0) {
+        println("[-] Failed to bind socket on port 6379! Is another Redis running?");
+        return 1;
+    }
+
+    println("[+] Demon listening on 0.0.0.0:6379");
+
+    let req_count: int = 0;
+    while (req_count < 1000000) {
+        let client_fd: int = dmc_tcp_accept(server_fd);
+        if (client_fd >= 0) {
+            let req: string = dmc_tcp_read_request(client_fd);
+            if (req.len() > 0) {
+                let response: string = execute_redis_command(req);
+                let resp_len: int = response.len();
+                dmc_tcp_send(client_fd, response, resp_len);
+            }
+            dmc_tcp_close(client_fd);
+            req_count = req_count + 1;
+        }
+    }
+
+    dmc_tcp_close(server_fd);
+    return 0;
+}

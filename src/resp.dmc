@@ -1,0 +1,7 @@
+extern fn resp_simple_string(str: string) -> string;
+extern fn resp_error(err: string) -> string;
+extern fn resp_integer(val: int) -> string;
+extern fn resp_bulk_string(str: string) -> string;
+extern fn resp_null() -> string;
+extern fn resp_ok() -> string;
+extern fn resp_pong() -> string;

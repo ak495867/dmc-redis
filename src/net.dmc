@@ -1,0 +1,5 @@
+extern fn dmc_tcp_listen(port: int) -> int;
+extern fn dmc_tcp_accept(server_fd: int) -> int;
+extern fn dmc_tcp_read_request(client_fd: int) -> string;
+extern fn dmc_tcp_send(client_fd: int, buffer: string, len: int) -> int;
+extern fn dmc_tcp_close(fd: int) -> int;

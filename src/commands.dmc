@@ -1,0 +1,1 @@
+extern fn execute_redis_command(raw_cmd: string) -> string;

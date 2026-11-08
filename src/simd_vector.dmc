@@ -1,0 +1,3 @@
+extern fn simd_store_set(key: string, x: float, y: float, z: float, w: float) -> int;
+extern fn simd_store_search(qx: float, qy: float, qz: float, qw: float) -> string;
+extern fn simd_store_count() -> int;

@@ -1,0 +1,11 @@
+[package]
+name = "dmc-redis"
+version = "1.0.0"
+description = "In-memory key-value and SIMD vector database server written in pure Demonic C"
+author = "ak495867"
+license = "MIT"
+
+[build]
+entry = "src/main.dmc"
+output = "bin/dmc-redis"
+type = "executable"

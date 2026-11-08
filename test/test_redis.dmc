@@ -1,0 +1,65 @@
+import "src/storage.dmc";
+import "src/simd_vector.dmc";
+import "src/commands.dmc";
+import "src/resp.dmc";
+
+#[test]
+fn test_storage_basic() -> int {
+    let s: int = store_set("name", "demonic");
+    if (s != 1) { return 1; }
+    let v: string = store_get("name");
+    if (v.len() != 7) { return 2; }
+    let exists: int = store_exists("name");
+    if (exists != 1) { return 3; }
+    let d: int = store_del("name");
+    if (d != 1) { return 4; }
+    let gone: int = store_exists("name");
+    if (gone != 0) { return 5; }
+    return 0;
+}
+
+#[test]
+fn test_incr_decr() -> int {
+    store_del("counter");
+    let c1: int = store_incr("counter", 1);
+    if (c1 != 1) { return 1; }
+    let c2: int = store_incr("counter", 5);
+    if (c2 != 6) { return 2; }
+    let c3: int = store_incr("counter", -2);
+    if (c3 != 4) { return 3; }
+    return 0;
+}
+
+#[test]
+fn test_simd_vectors() -> int {
+    simd_store_set("vec_alpha", 1.0, 0.0, 0.0, 0.0);
+    simd_store_set("vec_beta", 0.0, 1.0, 0.0, 0.0);
+    simd_store_set("vec_gamma", 0.0, 0.0, 1.0, 0.0);
+
+    let match1: string = simd_store_search(0.9, 0.1, 0.0, 0.0);
+    if (match1.len() != 9) { return 1; }
+
+    let match2: string = simd_store_search(0.0, 0.0, 0.8, 0.1);
+    if (match2.len() != 9) { return 2; }
+    return 0;
+}
+
+#[test]
+fn test_commands_execution() -> int {
+    let r1: string = execute_redis_command("PING");
+    if (r1.len() < 4) { return 1; }
+
+    let r2: string = execute_redis_command("SET test_key test_val");
+    if (r2.len() < 4) { return 2; }
+
+    let r3: string = execute_redis_command("GET test_key");
+    if (r3.len() < 5) { return 3; }
+
+    let r4: string = execute_redis_command("SIMD.SET v1 1.0 2.0 3.0 4.0");
+    if (r4.len() < 4) { return 4; }
+
+    let r5: string = execute_redis_command("SIMD.SEARCH 1.0 2.0 3.0 4.0");
+    if (r5.len() < 4) { return 5; }
+
+    return 0;
+}
