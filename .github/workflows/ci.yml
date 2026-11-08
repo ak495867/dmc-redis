@@ -1,0 +1,82 @@
+name: CI & Release
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & Run Tests (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cc -O3 -msse2 -pthread test/transpiled_test.c src/redis_native.c -o test_runner -lm
+          ./test_runner
+
+      - name: Build & Run Tests (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          gcc -O3 -msse2 test/transpiled_test.c src/redis_native.c -o test_runner.exe -lws2_32
+          .\test_runner.exe
+
+  release:
+    name: Build & Release Artifacts
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: dmc-redis-linux-x86_64.tar.gz
+            binary: dmc-redis
+            cmd: |
+              cc -O3 -msse2 -pthread src/transpiled_main.c src/redis_native.c -o dmc-redis -lm
+              tar -czvf dmc-redis-linux-x86_64.tar.gz dmc-redis
+          - os: macos-latest
+            artifact_name: dmc-redis-macos-arm64.tar.gz
+            binary: dmc-redis
+            cmd: |
+              clang -O3 -pthread src/transpiled_main.c src/redis_native.c -o dmc-redis -lm
+              tar -czvf dmc-redis-macos-arm64.tar.gz dmc-redis
+          - os: windows-latest
+            artifact_name: dmc-redis-windows-x86_64.zip
+            binary: dmc-redis.exe
+            cmd: |
+              gcc -O3 -msse2 src/transpiled_main.c src/redis_native.c -o dmc-redis.exe -lws2_32
+              Compress-Archive -Path dmc-redis.exe -DestinationPath dmc-redis-windows-x86_64.zip
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile & Package
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            gcc -O3 -msse2 src/transpiled_main.c src/redis_native.c -o dmc-redis.exe -lws2_32
+            powershell -Command "Compress-Archive -Path dmc-redis.exe -DestinationPath dmc-redis-windows-x86_64.zip -Force"
+          else
+            cc -O3 -msse2 -pthread src/transpiled_main.c src/redis_native.c -o dmc-redis -lm
+            tar -czvf ${{ matrix.artifact_name }} dmc-redis
+          fi
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

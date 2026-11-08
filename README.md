@@ -5,7 +5,13 @@
 </p>
 
 <p align="center">
-  <strong>An ultra-fast in-memory key-value and SIMD vector database server built 100% in pure Demonic C.</strong>
+  <strong>An ultra-fast in-memory key-value and 128-bit hardware SIMD vector database server built in Demonic C.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/ak495867/dmc-redis/releases"><img src="https://img.shields.io/github/v/release/ak495867/dmc-redis?style=for-the-badge&color=blue" alt="Release"></a>
+  <a href="https://github.com/ak495867/dmc-redis/actions"><img src="https://img.shields.io/github/actions/workflow/status/ak495867/dmc-redis/ci.yml?style=for-the-badge" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License"></a>
 </p>
 
 ---
@@ -16,15 +22,30 @@
 
 ### Highlights
 
-- **RESP Compatible Protocol**: Speaks standard Redis protocol (`+OK`, `-ERR`, `:int`, `$bulk`).
-- **Hardware SIMD Vector Search**: Custom `SIMD.SET` and `SIMD.SEARCH` commands lowering to 128-bit SSE/AVX registers for instantaneous vector dot products.
-- **Microsecond In-Memory Store**: `PING`, `SET`, `GET`, `DEL`, `EXISTS`, `INCR`, `DECR`, `EXPIRE`, `TTL`.
-- **Pure Demonic C**: Compiles directly with `dmc` or runs instantly via the build cache.
-- **Zero Dependencies**: Standard ANSI C runtime and OS socket layer.
+- **RESP & Inline Compatibility**: Full support for Redis Serialization Protocol arrays (`*<len>...$<len>`) and raw inline commands.
+- **Hardware SIMD Vector Search**: Custom `SIMD.SET` and `SIMD.SEARCH` commands lowering to 128-bit SSE registers for instantaneous vector dot products.
+- **O(1) Hash Table Indexing**: FNV-1a hash bucket store with open chaining replacing linear scans.
+- **Persistent Keep-Alive Sockets**: Full connection reuse and request pipelining for SDK connection pools.
+- **Active TTL & LRU Eviction**: Automatic memory sweeps with clock-based LRU memory cap enforcement.
+- **Zero Dependencies**: Native ANSI C socket layer with no runtime bloat.
 
 ---
 
-## 🚀 Quick Start
+## ⚡ Direct Install
+
+### Linux & macOS (bash / zsh)
+```bash
+curl -fsSL https://raw.githubusercontent.com/ak495867/dmc-redis/master/install.sh | sh
+```
+
+### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/ak495867/dmc-redis/master/install.ps1 | iex
+```
+
+---
+
+## 🚀 Quick Start (From Source)
 
 ### 1. Run Directly with `dmc`
 ```bash
