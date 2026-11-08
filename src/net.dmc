@@ -3,3 +3,4 @@ extern fn dmc_tcp_accept(server_fd: int) -> int;
 extern fn dmc_tcp_read_request(client_fd: int) -> string;
 extern fn dmc_tcp_send(client_fd: int, buffer: string, len: int) -> int;
 extern fn dmc_tcp_close(fd: int) -> int;
+extern fn dmc_tcp_process_client(client_fd: int) -> int;

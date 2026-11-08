@@ -61,5 +61,11 @@ fn test_commands_execution() -> int {
     let r5: string = execute_redis_command("SIMD.SEARCH 1.0 2.0 3.0 4.0");
     if (r5.len() < 4) { return 5; }
 
+    let r6: string = execute_redis_command("*3\r\n$3\r\nSET\r\n$7\r\nrespkey\r\n$7\r\nrespval\r\n");
+    if (r6.len() < 4) { return 6; }
+
+    let r7: string = execute_redis_command("*2\r\n$3\r\nGET\r\n$7\r\nrespkey\r\n");
+    if (r7.len() < 5) { return 7; }
+
     return 0;
 }
