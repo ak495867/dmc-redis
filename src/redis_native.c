@@ -24,7 +24,11 @@ typedef int socklen_t;
 #include <string.h>
 #include <time.h>
 #include <stdint.h>
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 #include <immintrin.h>
+#elif defined(__ARM_NEON) || defined(__aarch64__)
+#include <arm_neon.h>
+#endif
 
 static int _dmc_net_init_done = 0;
 static void _dmc_net_init(void) {
@@ -373,8 +377,9 @@ int simd_store_set(const char* key, float x, float y, float z, float w) {
 const char* simd_store_search(float qx, float qy, float qz, float qw) {
     int best_idx = -1;
     float best_dot = -1e9f;
-    __m128 q = _mm_set_ps(qw, qz, qy, qx);
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+    __m128 q = _mm_set_ps(qw, qz, qy, qx);
     for (int i = 0; i < MAX_VECTORS; ++i) {
         if (_dmc_vectors[i].occupied) {
             __m128 v = _mm_load_ps(_dmc_vectors[i].components);
@@ -392,6 +397,34 @@ const char* simd_store_search(float qx, float qy, float qz, float qw) {
             }
         }
     }
+#elif defined(__ARM_NEON) || defined(__aarch64__)
+    float q_arr[4] = {qx, qy, qz, qw};
+    float32x4_t q = vld1q_f32(q_arr);
+    for (int i = 0; i < MAX_VECTORS; ++i) {
+        if (_dmc_vectors[i].occupied) {
+            float32x4_t v = vld1q_f32(_dmc_vectors[i].components);
+            float32x4_t prod = vmulq_f32(q, v);
+            float dot = vaddvq_f32(prod);
+            if (dot > best_dot) {
+                best_dot = dot;
+                best_idx = i;
+            }
+        }
+    }
+#else
+    for (int i = 0; i < MAX_VECTORS; ++i) {
+        if (_dmc_vectors[i].occupied) {
+            float dot = (qx * _dmc_vectors[i].components[0]) +
+                        (qy * _dmc_vectors[i].components[1]) +
+                        (qz * _dmc_vectors[i].components[2]) +
+                        (qw * _dmc_vectors[i].components[3]);
+            if (dot > best_dot) {
+                best_dot = dot;
+                best_idx = i;
+            }
+        }
+    }
+#endif
 
     if (best_idx >= 0) {
         return _dmc_vectors[best_idx].key;
