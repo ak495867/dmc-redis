@@ -26,18 +26,25 @@ fn main() -> int {
 
     println("[+] Demon listening on 0.0.0.0:6379");
 
-    let req_count: int = 0;
-    while (req_count < 1000000) {
+    let total_clients: int = 0;
+    while (total_clients < 1000000) {
         let client_fd: int = dmc_tcp_accept(server_fd);
         if (client_fd >= 0) {
-            let req: string = dmc_tcp_read_request(client_fd);
-            if (req.len() > 0) {
-                let response: string = execute_redis_command(req);
-                let resp_len: int = response.len();
-                dmc_tcp_send(client_fd, response, resp_len);
+            let active: int = 1;
+            while (active == 1) {
+                let req: string = dmc_tcp_read_request(client_fd);
+                let req_len: int = req.len();
+                if (req_len <= 0) {
+                    active = 0;
+                }
+                if (active == 1) {
+                    let response: string = execute_redis_command(req);
+                    let resp_len: int = response.len();
+                    dmc_tcp_send(client_fd, response, resp_len);
+                }
             }
             dmc_tcp_close(client_fd);
-            req_count = req_count + 1;
+            total_clients = total_clients + 1;
         }
     }
 
